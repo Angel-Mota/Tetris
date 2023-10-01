@@ -1,0 +1,8 @@
+C:\Users\angel\source\repos\Tetris\Tetris\bin\Debug\Tetris.exe.config
+C:\Users\angel\source\repos\Tetris\Tetris\bin\Debug\Tetris.exe
+C:\Users\angel\source\repos\Tetris\Tetris\bin\Debug\Tetris.pdb
+C:\Users\angel\source\repos\Tetris\Tetris\obj\Debug\Tetris.csproj.AssemblyReference.cache
+C:\Users\angel\source\repos\Tetris\Tetris\obj\Debug\Tetris.csproj.SuggestedBindingRedirects.cache
+C:\Users\angel\source\repos\Tetris\Tetris\obj\Debug\Tetris.csproj.CoreCompileInputs.cache
+C:\Users\angel\source\repos\Tetris\Tetris\obj\Debug\Tetris.exe
+C:\Users\angel\source\repos\Tetris\Tetris\obj\Debug\Tetris.pdb
