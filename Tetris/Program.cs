@@ -9,6 +9,7 @@ class Tetris
     static int[,] piezaActual = new int[,] { { 1, 1, 1, 1 } };
     static int posXPiezaActual, posYPiezaActual;
     static bool juegoTerminado = false;
+    static bool rotated = false;
 
     static void Main()
     {
@@ -18,18 +19,6 @@ class Tetris
         Console.BufferWidth = Console.WindowWidth;
 
         Inicializar();
-        Jugar();
-    }
-
-    static void Inicializar()
-    {
-        posXPiezaActual = ancho / 2 - piezaActual.GetLength(1) / 2;
-        posYPiezaActual = 0;
-        Dibujar();
-    }
-
-    static void Jugar()
-    {
         while (!juegoTerminado)
         {
             if (Console.KeyAvailable)
@@ -46,7 +35,14 @@ class Tetris
                     case ConsoleKey.DownArrow:
                         MoverAbajo();
                         break;
+                    case ConsoleKey.UpArrow:
+                        RotarPieza();
+                        break;
                 }
+            }
+            else
+            {
+                MoverAbajo();
             }
 
             Dibujar();
@@ -55,6 +51,14 @@ class Tetris
 
         Console.Clear();
         Console.WriteLine("Juego Terminado");
+    }
+
+    static void Inicializar()
+    {
+        posXPiezaActual = ancho / 2 - piezaActual.GetLength(1) / 2;
+        posYPiezaActual = 0;
+        rotated = false;
+        Dibujar();
     }
 
     static void MoverIzquierda()
@@ -85,8 +89,55 @@ class Tetris
         {
             posYPiezaActual--;
             CombinarPieza();
+            EliminarLineasCompletas();
             VerificarFinJuego();
             Inicializar();
+        }
+    }
+
+    static void RotarPieza()
+    {
+        Borrar();
+        if (!rotated)
+        {
+            // Rotar la pieza 90 grados en sentido antihorario
+            int[,] nuevaPieza = new int[piezaActual.GetLength(1), piezaActual.GetLength(0)];
+            for (int y = 0; y < piezaActual.GetLength(0); y++)
+            {
+                for (int x = 0; x < piezaActual.GetLength(1); x++)
+                {
+                    nuevaPieza[x, piezaActual.GetLength(0) - 1 - y] = piezaActual[y, x];
+                }
+            }
+            piezaActual = nuevaPieza;
+            rotated = true;
+        }
+        else
+        {
+            // Volver la pieza a su estado original
+            piezaActual = new int[,] { { 1, 1, 1, 1 } };
+            rotated = false;
+        }
+
+        if (!EsMovimientoValido())
+        {
+            // Si la rotación no es válida, deshacer la rotación
+            if (rotated)
+            {
+                piezaActual = new int[,] { { 1, 1, 1, 1 } };
+            }
+            else
+            {
+                int[,] nuevaPieza = new int[piezaActual.GetLength(1), piezaActual.GetLength(0)];
+                for (int y = 0; y < piezaActual.GetLength(0); y++)
+                {
+                    for (int x = 0; x < piezaActual.GetLength(1); x++)
+                    {
+                        nuevaPieza[x, piezaActual.GetLength(0) - 1 - y] = piezaActual[y, x];
+                    }
+                }
+                piezaActual = nuevaPieza;
+            }
         }
     }
 
@@ -122,6 +173,34 @@ class Tetris
                 {
                     tablero[posYPiezaActual + y, posXPiezaActual + x] = 1;
                 }
+            }
+        }
+    }
+
+    static void EliminarLineasCompletas()
+    {
+        for (int y = alto - 1; y >= 0; y--)
+        {
+            bool lineaCompleta = true;
+            for (int x = 0; x < ancho; x++)
+            {
+                if (tablero[y, x] == 0)
+                {
+                    lineaCompleta = false;
+                    break;
+                }
+            }
+
+            if (lineaCompleta)
+            {
+                for (int i = y; i > 0; i--)
+                {
+                    for (int x = 0; x < ancho; x++)
+                    {
+                        tablero[i, x] = tablero[i - 1, x];
+                    }
+                }
+                y++;
             }
         }
     }
