@@ -6,10 +6,10 @@ class Tetris
     static int ancho = 10;
     static int alto = 20;
     static int[,] tablero = new int[alto, ancho];
-    static int[,] piezaActual = new int[,] { { 1, 1, 1, 1 } };
+    static int[][] piezaActual;
     static int posXPiezaActual, posYPiezaActual;
     static bool juegoTerminado = false;
-    static bool rotated = false;
+    static int velocidad;
 
     static void Main()
     {
@@ -17,6 +17,8 @@ class Tetris
         Console.WindowWidth = ancho * 2;
         Console.BufferHeight = Console.WindowHeight;
         Console.BufferWidth = Console.WindowWidth;
+
+        SeleccionarDificultad(); // Agrega esta línea para seleccionar la dificultad
 
         Inicializar();
         while (!juegoTerminado)
@@ -46,19 +48,84 @@ class Tetris
             }
 
             Dibujar();
-            Thread.Sleep(100);
+            Thread.Sleep(velocidad); // Utiliza la variable velocidad para controlar la velocidad del juego
         }
 
         Console.Clear();
         Console.WriteLine("Juego Terminado");
     }
 
+    static void SeleccionarDificultad()
+    {
+        Console.Clear();
+        Console.WriteLine("Selecciona la dificultad:");
+        Console.WriteLine("1 - Difícil ");
+        Console.WriteLine("2 - Medio");
+        Console.WriteLine("3 -  Fácil");
+        ConsoleKeyInfo key;// con solo presionar la tecla lo lee
+        do
+        {
+            key = Console.ReadKey();
+            if (key.Key == ConsoleKey.D1 || key.Key == ConsoleKey.NumPad1)//tecla num 1
+            {
+                velocidad = 50; // Fácil
+                break;
+            }
+            else if (key.Key == ConsoleKey.D2 || key.Key == ConsoleKey.NumPad2)
+            {
+                velocidad = 100; // Medio
+                break;
+            }
+            else if (key.Key == ConsoleKey.D3 || key.Key == ConsoleKey.NumPad3)
+            {
+                velocidad = 200; // Difícil
+                break;
+            }
+        } while (key.Key != ConsoleKey.Escape);
+    }
+
+    static void MostrarMensajePerdida()
+    {
+        Console.Clear();
+        Console.WriteLine("Juego Terminado. ¡Has perdido!");
+        Console.WriteLine("Presiona cualquier tecla para salir.");
+        Console.ReadKey();
+    }
+
+    static void VerificarFinJuego()
+    {
+        if (posYPiezaActual == 0)
+        {
+            juegoTerminado = true;
+            MostrarMensajePerdida(); // Llama al método de mensaje de pérdida
+        }
+    }
+
     static void Inicializar()
     {
-        posXPiezaActual = ancho / 2 - piezaActual.GetLength(1) / 2;
+        ElegirPiezaAleatoria();
+        posXPiezaActual = ancho / 2 - piezaActual[0].Length / 2;
         posYPiezaActual = 0;
-        rotated = false;
         Dibujar();
+    }
+
+    static void ElegirPiezaAleatoria()
+    {
+        // Genera una pieza aleatoria (L, T o la original)
+        Random random = new Random();
+        int opcion = random.Next(3);
+        if (opcion == 0)
+        {
+            piezaActual = new int[][] { new int[] { 1, 1, 1, 1 } };
+        }
+        else if (opcion == 1)
+        {
+            piezaActual = new int[][] { new int[] { 1, 1, 1 }, new int[] { 1, 0, 0 } };
+        }
+        else
+        {
+            piezaActual = new int[][] { new int[] { 1, 1, 1 }, new int[] { 0, 1, 0 } };
+        }
     }
 
     static void MoverIzquierda()
@@ -98,56 +165,30 @@ class Tetris
     static void RotarPieza()
     {
         Borrar();
-        if (!rotated)
+        int originalAncho = piezaActual[0].Length;
+        int originalAlto = piezaActual.Length;
+        int[][] nuevaPieza = new int[originalAncho][];
+        for (int x = 0; x < originalAncho; x++)
         {
-            // Rotar la pieza 90 grados en sentido antihorario
-            int[,] nuevaPieza = new int[piezaActual.GetLength(1), piezaActual.GetLength(0)];
-            for (int y = 0; y < piezaActual.GetLength(0); y++)
+            nuevaPieza[x] = new int[originalAlto];
+            for (int y = 0; y < originalAlto; y++)
             {
-                for (int x = 0; x < piezaActual.GetLength(1); x++)
-                {
-                    nuevaPieza[x, piezaActual.GetLength(0) - 1 - y] = piezaActual[y, x];
-                }
-            }
-            piezaActual = nuevaPieza;
-            rotated = true;
-        }
-        else
-        {
-            // Volver la pieza a su estado original
-            piezaActual = new int[,] { { 1, 1, 1, 1 } };
-            rotated = false;
-        }
-
-        if (!EsMovimientoValido())
-        {
-            // Si la rotación no es válida, deshacer la rotación
-            if (rotated)
-            {
-                piezaActual = new int[,] { { 1, 1, 1, 1 } };
-            }
-            else
-            {
-                int[,] nuevaPieza = new int[piezaActual.GetLength(1), piezaActual.GetLength(0)];
-                for (int y = 0; y < piezaActual.GetLength(0); y++)
-                {
-                    for (int x = 0; x < piezaActual.GetLength(1); x++)
-                    {
-                        nuevaPieza[x, piezaActual.GetLength(0) - 1 - y] = piezaActual[y, x];
-                    }
-                }
-                piezaActual = nuevaPieza;
+                nuevaPieza[x][y] = piezaActual[y][originalAncho - 1 - x];
             }
         }
+        piezaActual = nuevaPieza;
     }
 
     static bool EsMovimientoValido()
     {
-        for (int y = 0; y < piezaActual.GetLength(0); y++)
+        int piezaAncho = piezaActual[0].Length;
+        int piezaAlto = piezaActual.Length;
+
+        for (int y = 0; y < piezaAlto; y++)
         {
-            for (int x = 0; x < piezaActual.GetLength(1); x++)
+            for (int x = 0; x < piezaAncho; x++)
             {
-                if (piezaActual[y, x] == 1)
+                if (piezaActual[y][x] == 1)
                 {
                     int posXTablero = posXPiezaActual + x;
                     int posYTablero = posYPiezaActual + y;
@@ -165,11 +206,14 @@ class Tetris
 
     static void CombinarPieza()
     {
-        for (int y = 0; y < piezaActual.GetLength(0); y++)
+        int piezaAncho = piezaActual[0].Length;
+        int piezaAlto = piezaActual.Length;
+
+        for (int y = 0; y < piezaAlto; y++)
         {
-            for (int x = 0; x < piezaActual.GetLength(1); x++)
+            for (int x = 0; x < piezaAncho; x++)
             {
-                if (piezaActual[y, x] == 1)
+                if (piezaActual[y][x] == 1)
                 {
                     tablero[posYPiezaActual + y, posXPiezaActual + x] = 1;
                 }
@@ -205,14 +249,6 @@ class Tetris
         }
     }
 
-    static void VerificarFinJuego()
-    {
-        if (posYPiezaActual == 0)
-        {
-            juegoTerminado = true;
-        }
-    }
-
     static void Dibujar()
     {
         Console.Clear();
@@ -226,11 +262,14 @@ class Tetris
             }
         }
 
-        for (int y = 0; y < piezaActual.GetLength(0); y++)
+        int piezaAncho = piezaActual[0].Length;
+        int piezaAlto = piezaActual.Length;
+
+        for (int y = 0; y < piezaAlto; y++)
         {
-            for (int x = 0; x < piezaActual.GetLength(1); x++)
+            for (int x = 0; x < piezaAncho; x++)
             {
-                if (piezaActual[y, x] == 1)
+                if (piezaActual[y][x] == 1)
                 {
                     Console.SetCursorPosition((posXPiezaActual + x) * 2, posYPiezaActual + y);
                     Console.Write("■");
@@ -241,11 +280,14 @@ class Tetris
 
     static void Borrar()
     {
-        for (int y = 0; y < piezaActual.GetLength(0); y++)
+        int piezaAncho = piezaActual[0].Length;
+        int piezaAlto = piezaActual.Length;
+
+        for (int y = 0; y < piezaAlto; y++)
         {
-            for (int x = 0; x < piezaActual.GetLength(1); x++)
+            for (int x = 0; x < piezaAncho; x++)
             {
-                if (piezaActual[y, x] == 1)
+                if (piezaActual[y][x] == 1)
                 {
                     Console.SetCursorPosition((posXPiezaActual + x) * 2, posYPiezaActual + y);
                     Console.Write("  ");
