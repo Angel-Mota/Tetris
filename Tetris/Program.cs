@@ -11,6 +11,30 @@ class Tetris
     static bool juegoTerminado = false;
     static int velocidad;
 
+    static bool EsRotacionValida(int[][] nuevaPieza)
+    {
+        int piezaAncho = nuevaPieza[0].Length;
+        int piezaAlto = nuevaPieza.Length;
+
+        for (int y = 0; y < piezaAlto; y++)
+        {
+            for (int x = 0; x < piezaAncho; x++)
+            {
+                if (nuevaPieza[y][x] == 1)
+                {
+                    int posXTablero = posXPiezaActual + x;
+                    int posYTablero = posYPiezaActual + y;
+
+                    if (posXTablero < 0 || posXTablero >= ancho || posYTablero >= alto || (posYTablero >= 0 && tablero[posYTablero, posXTablero] != 0))
+                    {
+                        return false; // La rotación no es válida
+                    }
+                }
+            }
+        }
+
+        return true; // La rotación es válida
+    }
     static void Main()
     {
         Console.WindowHeight = alto + 1;
@@ -59,16 +83,16 @@ class Tetris
     {
         Console.Clear();
         Console.WriteLine("Selecciona la dificultad:");
-        Console.WriteLine("1 - Difícil ");
+        Console.WriteLine("1 - Difícil");
         Console.WriteLine("2 - Medio");
-        Console.WriteLine("3 -  Fácil");
-        ConsoleKeyInfo key;// con solo presionar la tecla lo lee
+        Console.WriteLine("3 - Fácil");
+        ConsoleKeyInfo key;
         do
         {
             key = Console.ReadKey();
-            if (key.Key == ConsoleKey.D1 || key.Key == ConsoleKey.NumPad1)//tecla num 1
+            if (key.Key == ConsoleKey.D1 || key.Key == ConsoleKey.NumPad1)
             {
-                velocidad = 50; // Fácil
+                velocidad = 50; // Difícil
                 break;
             }
             else if (key.Key == ConsoleKey.D2 || key.Key == ConsoleKey.NumPad2)
@@ -78,7 +102,7 @@ class Tetris
             }
             else if (key.Key == ConsoleKey.D3 || key.Key == ConsoleKey.NumPad3)
             {
-                velocidad = 200; // Difícil
+                velocidad = 200; // Fácil
                 break;
             }
         } while (key.Key != ConsoleKey.Escape);
@@ -97,7 +121,7 @@ class Tetris
         if (posYPiezaActual == 0)
         {
             juegoTerminado = true;
-            MostrarMensajePerdida(); // Llama al método de mensaje de pérdida
+            MostrarMensajePerdida();
         }
     }
 
@@ -159,6 +183,11 @@ class Tetris
             EliminarLineasCompletas();
             VerificarFinJuego();
             Inicializar();
+            if (!EsMovimientoValido())
+            {
+                juegoTerminado = true;
+                MostrarMensajePerdida();
+            }
         }
     }
 
@@ -176,7 +205,12 @@ class Tetris
                 nuevaPieza[x][y] = piezaActual[y][originalAncho - 1 - x];
             }
         }
-        piezaActual = nuevaPieza;
+
+        // Verificar si la rotación es válida antes de aplicarla
+        if (EsRotacionValida(nuevaPieza))
+        {
+            piezaActual = nuevaPieza;
+        }
     }
 
     static bool EsMovimientoValido()
